@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+
+<body>
+    <header class="header">
+        <ul class="header__list">
+            <li class="header__listItem">
+                <p>Титов Савва Ильич</p>
+            </li>
+            <li class="header__listItem">
+                <p>P3112</p>
+            </li>
+            <li class="header__listItem">
+                <p>Вариант 12696</p>
+            </li>
+        </ul>
+    </header>
+    <main>
+        <section class="area">
+            <div class="area__form">
+                <h2>Поле попадания точек</h2>
+                <canvas id="canvas" width="700" height="700"></canvas>
+            </div>
+            <div class="area__resultSection">
+                <h2>Таблица результатов</h2>
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>X</th>
+                            <th>Y</th>
+                            <th>R</th>
+                            <th>Результат</th>
+                            <th>Дата и время</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+        </section>
+        <section class="form">
+            <form id="pointForm">
+                <div class="form__group">
+                    <span class="form__label">Значение X:</span>
+
+                    <label>
+                        <input type="radio" name="x" value="-4"> -4
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="-3"> -3
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="-2"> -2
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="-1"> -1
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="0" checked> 0
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="1"> 1
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="2"> 2
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="3"> 3
+                    </label>
+                    <label>
+                        <input type="radio" name="x" value="4"> 4
+                    </label>
+                </div>
+
+                <div class="form__group">
+                    <label for="yInput" class="form__label">Значение Y (от -3 до 5):</label>
+                    <input type="text" id="yInput" name="y" placeholder="Введите Y" maxlength="5">
+                </div>
+
+                <div class="form__group">
+                    <span class="form__label">Значение R:</span>
+
+                    <label>
+                        <input type="radio" name="r" value="1" checked> 1
+                    </label>
+                    <label>
+                        <input type="radio" name="r" value="2"> 2
+                    </label>
+                    <label>
+                        <input type="radio" name="r" value="3"> 3
+                    </label>
+                    <label>
+                        <input type="radio" name="r" value="4"> 4
+                    </label>
+                    <label>
+                        <input type="radio" name="r" value="5"> 5
+                    </label>
+                </div>
+
+                <div class="form__buttons">
+                    <button type="submit">Проверить</button>
+                    <button type="button" id="clearBtn">Очистить таблицу</button>
+
+                </div>
+
+            </form>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>
