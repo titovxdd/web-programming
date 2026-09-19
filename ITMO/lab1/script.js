@@ -2,7 +2,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
-const scale = 60;
+const scale = 50;
 const form = document.getElementById('pointForm');
 const clearBtn = document.getElementById('clearBtn');
 
@@ -143,8 +143,10 @@ function drawScene(R) {
     drawGrid(R);
     drawArea(R);
 
-    if (lastPoint) {
-        drawPoint(lastPoint.x, lastPoint.y, lastPoint.hit);
+    const savedPoint = localStorage.getItem('lastPoint');
+    if (savedPoint) {
+        const parsedPoint = JSON.parse(savedPoint);
+        drawPoint(parsedPoint.x, parsedPoint.y, parsedPoint.hit);
     }
 }
 
@@ -224,7 +226,9 @@ form.addEventListener('submit', function (event) {
     };
     points.push(point);
     localStorage.setItem('points', JSON.stringify(points));
+    localStorage.setItem('lastR', R);
     lastPoint = {x: x, y: y, hit: hit};
+    localStorage.setItem('lastPoint', JSON.stringify(lastPoint));
     drawScene(R);
     addRowToTable(point);
 });
@@ -239,16 +243,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const R = parseFloat(document.querySelector('input[name="r"]:checked').value);
+
+    const R = Number(localStorage.getItem('lastR')) || 2;
+
     drawScene(R);
 });
 
 clearBtn.addEventListener('click', function () {
     points = [];
-    localStorage.clear();
-    lastPoint = null;
+    localStorage.removeItem('points');
     const tbody = document.getElementById('resultsBody');
     tbody.innerHTML = '';
-    const R = parseFloat(document.querySelector('input[name="r"]:checked').value);
-    drawScene(R);
 });
