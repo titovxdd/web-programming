@@ -12,7 +12,7 @@ function toCanvasX(x) { return centerX + x * scale; }
 function toCanvasY(y) { return centerY - y * scale; }
 
 let points = [];
-let lastPoint = null;
+
 
 function drawGrid(R) {
     ctx.strokeStyle = '#333';
@@ -119,13 +119,18 @@ function drawArea(R) {
     ctx.fill();
 }
 
-function drawPoint(x, y) {
-    const px = toCanvasX(x);
-    const py = toCanvasY(y);
+function drawPoint(p, R) {
+    const px = toCanvasX(p.x);
+    const py = toCanvasY(p.y);
+    const hit = isHit(p.x, p.y, R);
 
     ctx.beginPath();
     ctx.arc(px, py, 6, 0, Math.PI * 2);
-    ctx.fillStyle = '#c21129'
+    if (hit){
+        ctx.fillStyle = '#07b624'
+    } else {
+        ctx.fillStyle = '#c21129'
+    }
     ctx.fill();
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
@@ -135,7 +140,7 @@ function drawPoint(x, y) {
     ctx.font = '12px Arial';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('(' + x + ', ' + y + ')', px + 10, py - 10);
+    ctx.fillText('(' + p.x + ', ' + p.y + ')', px + 10, py - 10);
 }
 
 function drawScene(R) {
@@ -143,10 +148,10 @@ function drawScene(R) {
     drawGrid(R);
     drawArea(R);
 
-    const savedPoint = localStorage.getItem('lastPoint');
-    if (savedPoint) {
-        const parsedPoint = JSON.parse(savedPoint);
-        drawPoint(parsedPoint.x, parsedPoint.y, parsedPoint.hit);
+    if (points) {
+        points.forEach(function (p) {
+            drawPoint(p, R)
+        });
     }
 }
 
@@ -224,13 +229,20 @@ form.addEventListener('submit', function (event) {
         hit: hit,
         timestamp: Date.now()
     };
-    points.push(point);
-    localStorage.setItem('points', JSON.stringify(points));
-    localStorage.setItem('lastR', R);
-    lastPoint = {x: x, y: y, hit: hit};
-    localStorage.setItem('lastPoint', JSON.stringify(lastPoint));
+
+    const isDuplicate = points.some(p => 
+        p.x === x && p.y === y
+    );
+
+    if (!(isDuplicate)) {
+        points.push(point);
+        localStorage.setItem('points', JSON.stringify(points));
+        localStorage.setItem('lastR', R);
+    }
     drawScene(R);
-    addRowToTable(point);
+    points.forEach(function (p) {
+        addRowToTable(p);
+    });
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -244,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    const R = Number(localStorage.getItem('lastR')) || 2;
+    const R = Number(localStorage.getItem('lastR')) || 3;
 
     drawScene(R);
 });
@@ -254,4 +266,6 @@ clearBtn.addEventListener('click', function () {
     localStorage.removeItem('points');
     const tbody = document.getElementById('resultsBody');
     tbody.innerHTML = '';
+    const R = Number(localStorage.getItem('lastR')) || 3;
+    drawScene(R);
 });
