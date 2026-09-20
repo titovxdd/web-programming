@@ -12,6 +12,7 @@ function toCanvasX(x) { return centerX + x * scale; }
 function toCanvasY(y) { return centerY - y * scale; }
 
 let points = [];
+let results = [];
 
 
 function drawGrid(R) {
@@ -141,6 +142,7 @@ function drawPoint(p, R) {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
     ctx.fillText('(' + p.x + ', ' + p.y + ')', px + 10, py - 10);
+    p.hit = hit
 }
 
 function drawScene(R) {
@@ -237,20 +239,25 @@ form.addEventListener('submit', function (event) {
     if (!(isDuplicate)) {
         points.push(point);
         localStorage.setItem('points', JSON.stringify(points));
-        localStorage.setItem('lastR', R);
     }
     drawScene(R);
     points.forEach(function (p) {
         addRowToTable(p);
+        results.push({...p});
     });
+    localStorage.setItem('lastR', R);
+    localStorage.setItem('results', JSON.stringify(results));
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    const saved = localStorage.getItem('points');
+    const savedPoints = localStorage.getItem('points');
+    const savedResults = localStorage.getItem('results');
 
-    if (saved) {
-        points = JSON.parse(saved);
-        points.forEach(function (p) {
+    points = JSON.parse(savedPoints);
+
+    if (savedResults) {
+        results = JSON.parse(savedResults);
+        results.forEach(function (p) {
             addRowToTable(p);
         });
     }
@@ -262,8 +269,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 clearBtn.addEventListener('click', function () {
-    points = [];
-    localStorage.removeItem('points');
+    results = [];
+    localStorage.removeItem('results');
     const tbody = document.getElementById('resultsBody');
     tbody.innerHTML = '';
     const R = Number(localStorage.getItem('lastR')) || 3;
