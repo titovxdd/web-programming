@@ -10,6 +10,8 @@ const clearBtn = document.getElementById('clearBtn');
 
 function toCanvasX(x) { return centerX + x * scale; }
 function toCanvasY(y) { return centerY - y * scale; }
+function toMathX(px) { return (px - centerX) / scale; }
+function toMathY(py) { return (centerY - py) / scale; }
 
 let points = [];
 let results = [];
@@ -203,7 +205,7 @@ form.addEventListener('submit', function (event) {
 
     const xChecked = document.querySelector('input[name="x"]:checked');
     if (!xChecked) {
-        alert('Выберите X');
+        showToast('Выберите X');
         return;
     }
     const x = parseFloat(xChecked.value);
@@ -211,13 +213,13 @@ form.addEventListener('submit', function (event) {
     const yValue = document.getElementById('yInput').value.trim();
     const y = Number(yValue);
     if (yValue === '' || isNaN(y) || y < -3 || y > 5) {
-        alert('Y должен быть числом от -3 до 5');
+        showToast('Y должен быть числом от -3 до 5');
         return;
     }
 
     const rChecked = document.querySelector('input[name="r"]:checked');
     if (!rChecked) {
-        alert('Выберите R');
+        showToast('Выберите R');
         return;
     }
     const R = parseFloat(rChecked.value);
@@ -276,3 +278,19 @@ clearBtn.addEventListener('click', function () {
     const R = Number(localStorage.getItem('lastR')) || 3;
     drawScene(R);
 });
+
+function showToast(message, type = 'error') {
+    const container = document.getElementById('toastContainer');
+
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (type === 'success' ? ' success' : '');
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+
+    setTimeout(function () {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
