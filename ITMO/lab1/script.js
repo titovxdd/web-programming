@@ -4,7 +4,8 @@ const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
 const scale = 50;
 const form = document.getElementById('pointForm');
-const clearBtn = document.getElementById('clearBtn');
+const tableClearBtn = document.getElementById('tableClearBtn');
+const graphClearBtn = document.getElementById('graphClearBtn');
 
 
 
@@ -165,7 +166,7 @@ function isHit(x, y, R) {
 
     const inRect = (x >= 0 && x <= R/2 && y >= 0 && y <= R);
     
-    const inTriangle = (x >= 0 && x <= R/2 && y >= -R/2 && y <= 0 && y >= x);
+    const inTriangle = (x >= 0 && x <= R/2 && y >= -R/2 && y <= 0 && y >= x - R/2);
 
     return inCircle || inRect || inTriangle;
 }
@@ -242,8 +243,11 @@ form.addEventListener('submit', function (event) {
         points.push(point);
         localStorage.setItem('points', JSON.stringify(points));
     }
+
     drawScene(R);
     points.forEach(function (p) {
+        p.r = R;
+        p.timestamp = Date.now();
         addRowToTable(p);
         results.push({...p});
     });
@@ -255,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const savedPoints = localStorage.getItem('points');
     const savedResults = localStorage.getItem('results');
 
-    points = JSON.parse(savedPoints);
+    points = JSON.parse(savedPoints) || [];
 
     if (savedResults) {
         results = JSON.parse(savedResults);
@@ -270,11 +274,16 @@ document.addEventListener('DOMContentLoaded', function () {
     drawScene(R);
 });
 
-clearBtn.addEventListener('click', function () {
+tableClearBtn.addEventListener('click', function () {
     results = [];
     localStorage.removeItem('results');
     const tbody = document.getElementById('resultsBody');
     tbody.innerHTML = '';
+});
+
+graphClearBtn.addEventListener('click', function () {
+    points = [];
+    localStorage.removeItem('points');
     const R = Number(localStorage.getItem('lastR')) || 3;
     drawScene(R);
 });
@@ -294,3 +303,35 @@ function showToast(message, type = 'error') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+canvas.addEventListener('click', function (event) {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    const X = Math.round(toMathX(mouseX) * 10) / 10;
+    const Y = Math.round(toMathY(mouseY) * 10) / 10;
+    const R = Number(localStorage.getItem('lastR')) || 3;
+
+    let isValid = false;
+    if (X < -4 || X > 4) { showToast('X должен быть числом от -4 до 4'); isValid = true; }
+    if (Y < -3 || Y > 5) { showToast('Y должен быть числом от -3 до 5'); isValid = true; }
+    if (isValid) return;
+
+    const point = {
+        x: X,
+        y: Y,
+        r: R,
+        hit: isHit(X, Y, R),
+        timestamp: Date.now()
+    };
+
+    const isDuplicate = points.some(p => 
+        p.x === X && p.y === Y
+    );
+    if (!(isDuplicate)) {
+        points.push(point);
+        localStorage.setItem('points', JSON.stringify(points));
+        drawScene(R);
+    }
+})
+
