@@ -6,7 +6,40 @@ const scale = 50;
 const form = document.getElementById('pointForm');
 const tableClearBtn = document.getElementById('tableClearBtn');
 const graphClearBtn = document.getElementById('graphClearBtn');
+const addBtn = document.getElementById('addBtn');
 
+const storage = {
+    get(key) {
+        try {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            console.error(e);
+            return null;
+        }
+    },
+    set(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            console.error(e);
+        }
+    },
+    remove(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.error(e);
+        }
+    },
+    clear() {
+    try {
+        localStorage.clear();
+    } catch (e) {
+        console.error(e);
+    }
+}
+}
 
 
 function toCanvasX(x) { return centerX + x * scale; }
@@ -19,9 +52,21 @@ let results = [];
 
 
 function drawGrid(R) {
+    ctx.strokeStyle = '#cecdcd';
+    ctx.fillStyle = '#cecdcd';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    for (let i = -5; i < 6; i++){
+        ctx.moveTo(10, centerY + scale * i);
+        ctx.lineTo(canvas.width - 10, centerY + scale * i);
+        ctx.moveTo(centerX + scale * i, 10);
+        ctx.lineTo(centerX + scale * i, canvas.height -10);
+    }
+    ctx.stroke();
+
     ctx.strokeStyle = '#333';
     ctx.fillStyle = '#333';
-    ctx.lineWidth = 1.5;
 
     ctx.beginPath();
     ctx.moveTo(0, centerY);
@@ -86,6 +131,11 @@ function drawGrid(R) {
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText('0', centerX - 5, centerY + 5);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('1', centerX + scale - 5, centerY);
+    ctx.fillText('1', centerX + 5, centerY - scale);
 }
 
 function drawArea(R) {
@@ -150,8 +200,8 @@ function drawPoint(p, R) {
 
 function drawScene(R) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid(R);
     drawArea(R);
+    drawGrid(R);
 
     if (points) {
         points.forEach(function (p) {
@@ -204,6 +254,25 @@ function addRowToTable(point) {
 form.addEventListener('submit', function (event) {
     event.preventDefault();
 
+    const rChecked = document.querySelector('input[name="r"]:checked');
+    if (!rChecked) {
+        showToast('Выберите R');
+        return;
+    }
+    const R = parseFloat(rChecked.value);
+
+    drawScene(R);
+    points.forEach(function (p) {
+        p.r = R;
+        p.timestamp = Date.now();
+        addRowToTable(p);
+        results.push({...p});
+    });
+    storage.set('lastR', R);
+    storage.set('results', JSON.stringify(results));
+});
+
+addBtn.addEventListener('click', function () {
     const xChecked = document.querySelector('input[name="x"]:checked');
     if (!xChecked) {
         showToast('Выберите X');
@@ -218,15 +287,8 @@ form.addEventListener('submit', function (event) {
         return;
     }
 
-    const rChecked = document.querySelector('input[name="r"]:checked');
-    if (!rChecked) {
-        showToast('Выберите R');
-        return;
-    }
-    const R = parseFloat(rChecked.value);
-
+    const R = Number(storage.get('lastR')) || 3;
     const hit = isHit(x, y, R);
-
     const point = {
         x: x,
         y: y,
@@ -241,50 +303,43 @@ form.addEventListener('submit', function (event) {
 
     if (!(isDuplicate)) {
         points.push(point);
-        localStorage.setItem('points', JSON.stringify(points));
+        storage.set('points', JSON.stringify(points));
+        drawScene(R);
+    } else {
+        showToast("Точка уже есть на графике")
     }
-
-    drawScene(R);
-    points.forEach(function (p) {
-        p.r = R;
-        p.timestamp = Date.now();
-        addRowToTable(p);
-        results.push({...p});
-    });
-    localStorage.setItem('lastR', R);
-    localStorage.setItem('results', JSON.stringify(results));
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-    const savedPoints = localStorage.getItem('points');
-    const savedResults = localStorage.getItem('results');
+    const savedPoints = storage.get('points');
+    const savedResults = storage.get('results');
 
-    points = JSON.parse(savedPoints) || [];
+    points = savedPoints || [];
 
     if (savedResults) {
-        results = JSON.parse(savedResults);
+        results = savedResults;
         results.forEach(function (p) {
             addRowToTable(p);
         });
     }
 
 
-    const R = Number(localStorage.getItem('lastR')) || 3;
+    const R = Number(storage.get('lastR')) || 3;
 
     drawScene(R);
 });
 
 tableClearBtn.addEventListener('click', function () {
     results = [];
-    localStorage.removeItem('results');
+    storage.remove('results');
     const tbody = document.getElementById('resultsBody');
     tbody.innerHTML = '';
 });
 
 graphClearBtn.addEventListener('click', function () {
     points = [];
-    localStorage.removeItem('points');
-    const R = Number(localStorage.getItem('lastR')) || 3;
+    storage.remove('points');
+    const R = Number(storage.get('lastR')) || 3;
     drawScene(R);
 });
 
@@ -310,7 +365,7 @@ canvas.addEventListener('click', function (event) {
     const mouseY = event.clientY - rect.top;
     const X = Math.round(toMathX(mouseX) * 10) / 10;
     const Y = Math.round(toMathY(mouseY) * 10) / 10;
-    const R = Number(localStorage.getItem('lastR')) || 3;
+    const R = Number(storage.get('lastR')) || 3;
 
     let isValid = false;
     if (X < -4 || X > 4) { showToast('X должен быть числом от -4 до 4'); isValid = true; }
@@ -330,7 +385,7 @@ canvas.addEventListener('click', function (event) {
     );
     if (!(isDuplicate)) {
         points.push(point);
-        localStorage.setItem('points', JSON.stringify(points));
+        storage.set('points', JSON.stringify(points));
         drawScene(R);
     }
 })

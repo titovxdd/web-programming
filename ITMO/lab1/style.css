@@ -61,8 +61,11 @@ input[type="radio"] {
 
 button[type="submit"]{
     background: #3a42e5;
+}
+
+#addBtn {
+    background: #3a42e5;
     margin-left: 40px;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 .area{
