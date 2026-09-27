@@ -78,12 +78,12 @@ button[type="submit"]{
     color: #3a42e5;
 }
 
-table {
+.table__wrap table {
     border-collapse: collapse;
     width: 100%;
 }
 
-th, td {
+td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: center;
@@ -138,4 +138,23 @@ h2::before {
         transform: translateX(100%);
         opacity: 0;
     }
+}
+
+.table__wrap {
+    overflow: auto;
+    width: 500px;
+    height: 650px;
+    border-bottom: 1px solid #ccc;
+}
+
+.table__wrap thead {
+    position: sticky;
+    top: 0;
+    background: #191464;
+    color: #ffffff;
+    z-index: 1;
+}
+
+.table__wrap thead th {
+    padding: 8px;
 }
