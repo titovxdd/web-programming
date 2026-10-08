@@ -41,6 +41,68 @@ const storage = {
 }
 }
 
+const cookieStorage = {
+    get(key) {
+        try {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                let values = cookie.split('=')[1];
+                if (cookie.split('=')[0].trim() === key) {
+                    const data = JSON.parse(values);
+                    return data;
+                } 
+            }
+            return null;
+        } catch (e) {
+            console.error(e);
+            return null;
+        }
+    },
+    set(name, value, options = {}) {
+        options = {
+            path: '/',
+            ...options
+        };
+
+        if (options.expires instanceof Date) {
+            options.expires = options.expires.toUTCString();
+        }
+
+        let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(JSON.stringify(value));
+
+        for (let optionKey in options) {
+            updatedCookie += "; " + optionKey;
+            let optionValue = options[optionKey];
+            if (optionValue !== true) {
+                updatedCookie += "=" + optionValue;
+            }
+        }
+
+        document.cookie = updatedCookie;
+    },
+    remove(key) {
+        try {
+            cookieStorage.set(key, "", {
+                'max-age': -1
+            })
+        } catch (e) {
+            console.error(e);
+        }
+    },
+    clear() {
+        try {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookieStorage.set(cookie.split('=')[0].trim(), "", {
+                    'max-age': -1
+                })
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+}
+
 
 function toCanvasX(x) { return centerX + x * scale; }
 function toCanvasY(y) { return centerY - y * scale; }
