@@ -8,7 +8,7 @@ const tableClearBtn = document.getElementById('tableClearBtn');
 const graphClearBtn = document.getElementById('graphClearBtn');
 const addBtn = document.getElementById('addBtn');
 
-const storage = {
+const LStorage = {
     get(key) {
         try {
             const data = localStorage.getItem(key);
@@ -48,7 +48,7 @@ const cookieStorage = {
             for (let cookie of cookies) {
                 let values = cookie.split('=')[1];
                 if (cookie.split('=')[0].trim() === key) {
-                    const data = JSON.parse(values);
+                    const data = JSON.parse(decodeURIComponent(values));
                     return data;
                 } 
             }
@@ -102,6 +102,8 @@ const cookieStorage = {
         }
     }
 }
+
+const storage = cookieStorage
 
 
 function toCanvasX(x) { return centerX + x * scale; }
@@ -331,7 +333,7 @@ form.addEventListener('submit', function (event) {
         results.push({...p});
     });
     storage.set('lastR', R);
-    storage.set('results', JSON.stringify(results));
+    storage.set('results', results);
 });
 
 addBtn.addEventListener('click', function () {
@@ -365,7 +367,7 @@ addBtn.addEventListener('click', function () {
 
     if (!(isDuplicate)) {
         points.push(point);
-        storage.set('points', JSON.stringify(points));
+        storage.set('points', points);
         drawScene(R);
     } else {
         showToast("Точка уже есть на графике")
@@ -376,14 +378,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const savedPoints = storage.get('points');
     const savedResults = storage.get('results');
 
-    points = savedPoints || [];
+    points = Array.isArray(savedPoints) ? savedPoints : [];
+    results = Array.isArray(savedResults) ? savedResults : [];
 
-    if (savedResults) {
-        results = savedResults;
-        results.forEach(function (p) {
-            addRowToTable(p);
-        });
-    }
+    results.forEach(function (p) {
+        addRowToTable(p);
+    });
 
 
     const R = Number(storage.get('lastR')) || 3;
@@ -447,7 +447,7 @@ canvas.addEventListener('click', function (event) {
     );
     if (!(isDuplicate)) {
         points.push(point);
-        storage.set('points', JSON.stringify(points));
+        storage.set('points', points);
         drawScene(R);
     }
 })
