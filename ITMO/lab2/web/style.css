@@ -1,0 +1,160 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    padding: 20px 0;
+    background: #3a42e5;
+}
+
+
+.header__list{
+    margin-left: 40px;
+    display: flex;
+    gap: 40px;
+    list-style: none;
+    color: #edeef2;
+}
+
+.header__listItem{
+    font-family: fantasy;
+    font-size: 20px;
+}
+
+.form__group {
+    margin-bottom: 10px;
+    margin-left: 40px;
+}
+
+.form__label{
+    font-size: 20px;
+}
+
+.form__group > label {
+    margin-right: 5px;
+    font-size: 20px;
+}
+
+input[type="radio"] {
+    font-size: 20px;
+}
+
+.form__buttons{
+    display: flex;
+    gap: 10px;
+
+}
+
+.form__buttons button{
+    font-size: 20px;
+    background: #e80536;
+    border-style: none;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 5px;
+}
+
+.form__buttons button:hover{
+    border-radius: 10px;
+}
+
+button[type="submit"]{
+    background: #3a42e5;
+}
+
+#addBtn {
+    background: #3a42e5;
+    margin-left: 40px;
+}
+
+.area{
+    margin-left: 40px;
+    display: flex;
+    gap: 100px;
+}
+
+.area h2 {
+    color: #3a42e5;
+}
+
+.table__wrap table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
+h2::before {
+    content: "▶ ";
+    color: #182a7a;
+    margin-right: 8px;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: #dc3545;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    animation: slideIn 0.3s ease-out;
+    max-width: 200px;
+}
+
+.toast.success {
+    background: #28a745;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.hiding {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideOut {
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.table__wrap {
+    overflow: auto;
+    width: 500px;
+    height: 650px;
+    border: 1px solid #ccc;
+}
+
+.table__wrap thead {
+    position: sticky;
+    top: 0;
+    background: #191464;
+    color: #ffffff;
+    z-index: 1;
+}
+
+.table__wrap thead th {
+    padding: 8px;
+}
