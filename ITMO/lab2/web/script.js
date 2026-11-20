@@ -33,12 +33,12 @@ const LStorage = {
         }
     },
     clear() {
-    try {
-        localStorage.clear();
-    } catch (e) {
-        console.error(e);
+        try {
+            localStorage.clear();
+        } catch (e) {
+            console.error(e);
+        }
     }
-}
 }
 
 const cookieStorage = {
@@ -50,7 +50,7 @@ const cookieStorage = {
                 if (cookie.split('=')[0].trim() === key) {
                     const data = JSON.parse(decodeURIComponent(values));
                     return data;
-                } 
+                }
             }
             return null;
         } catch (e) {
@@ -121,11 +121,11 @@ function drawGrid(R) {
     ctx.lineWidth = 1.5;
 
     ctx.beginPath();
-    for (let i = -5; i < 6; i++){
+    for (let i = -5; i < 6; i++) {
         ctx.moveTo(10, centerY + scale * i);
         ctx.lineTo(canvas.width - 10, centerY + scale * i);
         ctx.moveTo(centerX + scale * i, 10);
-        ctx.lineTo(centerX + scale * i, canvas.height -10);
+        ctx.lineTo(centerX + scale * i, canvas.height - 10);
     }
     ctx.stroke();
 
@@ -169,10 +169,10 @@ function drawGrid(R) {
         ctx.fillText(label, px, centerY + 8);
     }
 
-    drawX(-R,    '-R');
-    drawX(-R/2,  '-R/2');
-    drawX(R/2,   'R/2');
-    drawX(R,     'R');
+    drawX(-R, '-R');
+    drawX(-R / 2, '-R/2');
+    drawX(R / 2, 'R/2');
+    drawX(R, 'R');
 
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -187,10 +187,10 @@ function drawGrid(R) {
         ctx.fillText(label, centerX - 8, py);
     }
 
-    drawY(-R,    '-R');
-    drawY(-R/2,  '-R/2');
-    drawY(R/2,   'R/2');
-    drawY(R,     'R');
+    drawY(-R, '-R');
+    drawY(-R / 2, '-R/2');
+    drawY(R / 2, 'R/2');
+    drawY(R, 'R');
 
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
@@ -224,15 +224,15 @@ function drawArea(R) {
     ctx.rect(
         toCanvasX(0),
         toCanvasY(R),
-        R/2 * scale,
+        R / 2 * scale,
         R * scale
     );
     ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(toCanvasX(0),toCanvasY(0));
-    ctx.lineTo(toCanvasX(R/2), toCanvasY(0));
-    ctx.lineTo(toCanvasX(0),toCanvasY(-R/2));
+    ctx.moveTo(toCanvasX(0), toCanvasY(0));
+    ctx.lineTo(toCanvasX(R / 2), toCanvasY(0));
+    ctx.lineTo(toCanvasX(0), toCanvasY(-R / 2));
     ctx.closePath();
     ctx.fill();
 }
@@ -244,7 +244,7 @@ function drawPoint(p) {
 
     ctx.beginPath();
     ctx.arc(px, py, 6, 0, Math.PI * 2);
-    if (hit){
+    if (hit) {
         ctx.fillStyle = '#07b624'
     } else {
         ctx.fillStyle = '#c21129'
@@ -277,9 +277,9 @@ function drawScene(R) {
 function isHit(x, y, R) {
     const inCircle = (x <= 0 && y <= 0 && x * x + y * y <= R * R);
 
-    const inRect = (x >= 0 && x <= R/2 && y >= 0 && y <= R);
-    
-    const inTriangle = (x >= 0 && x <= R/2 && y >= -R/2 && y <= 0 && y >= x - R/2);
+    const inRect = (x >= 0 && x <= R / 2 && y >= 0 && y <= R);
+
+    const inTriangle = (x >= 0 && x <= R / 2 && y >= -R / 2 && y <= 0 && y >= x - R / 2);
 
     return inCircle || inRect || inTriangle;
 }
@@ -323,16 +323,14 @@ form.addEventListener('submit', async function (event) {
         return;
     }
     const R = parseFloat(rChecked.value);
-    const requestData = {r: R};
+    const requestData = { r: R };
 
-    drawScene(R);
-    storage.set('lastR', R);
 
     try {
-        let response = await fetch("URL", {
+        let response = await fetch("api/check", {
             method: "POST",
             headers: {
-                "Content-type": "application/json"
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(requestData)
         });
@@ -343,10 +341,17 @@ form.addEventListener('submit', async function (event) {
 
         let responseData = await response.json();
 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawArea(R);
+        drawGrid(R);
+        responseData.forEach(function (r) {
+            drawPoint(r);
+        })
+
         const tbody = document.getElementById('resultsBody');
         tbody.innerHTML = '';
 
-        responseData.forEach(function (r){
+        responseData.forEach(function (r) {
             addRowToTable(r);
         })
     } catch (e) {
@@ -354,73 +359,128 @@ form.addEventListener('submit', async function (event) {
     }
 });
 
-addBtn.addEventListener('click', function () {
+addBtn.addEventListener('click', async function () {
     const xChecked = document.querySelector('input[name="x"]:checked');
     if (!xChecked) {
         showToast('Выберите X');
         return;
     }
-    const x = parseFloat(xChecked.value);
+    const X = parseFloat(xChecked.value);
 
     const yValue = document.getElementById('yInput').value.trim();
-    const y = Number(yValue);
-    if (yValue === '' || isNaN(y) || y < -3 || y > 5) {
+    const Y = Number(yValue);
+    if (yValue === '' || isNaN(Y) || Y < -3 || Y > 5) {
         showToast('Y должен быть числом от -3 до 5');
         return;
     }
 
-    const R = Number(storage.get('lastR')) || 3;
-    const hit = isHit(x, y, R);
     const point = {
-        x: x,
-        y: y,
-        r: R,
-        hit: hit,
-        timestamp: Date.now()
+        x: X,
+        y: Y,
     };
 
-    const isDuplicate = points.some(p => 
-        p.x === x && p.y === y
-    );
 
-    if (!(isDuplicate)) {
-        points.push(point);
-        storage.set('points', points);
-        drawScene(R);
-    } else {
-        showToast("Точка уже есть на графике")
+    let requestData = point;
+    try {
+        let response = await fetch("api/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        if (!response.ok) {
+            if (response.status === 400) {
+                throw new Error("Duplicate");
+            }
+            throw new Error("Ошибка сервера: " + response.status);
+        }
+
+        let responseData = await response.json();
+        
+
+        drawPoint(responseData);
+    } catch (e) {
+        if (e.message === "Duplicate") {
+            showToast("Точка уже есть на графике");
+        } else {
+            console.error("Error", e);
+        }
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const savedPoints = storage.get('points');
-    const savedResults = storage.get('results');
+document.addEventListener('DOMContentLoaded', async function () {
+    try {
+        let response = await fetch("api/history", {
+            method: "GET",
+        });
 
-    points = Array.isArray(savedPoints) ? savedPoints : [];
-    results = Array.isArray(savedResults) ? savedResults : [];
+        if (!response.ok) {
+            throw new Error("Ошибка сервера: " + response.status);
+        }
 
-    results.forEach(function (p) {
-        addRowToTable(p);
-    });
+        let responseData = await response.json();
+        let tableData = responseData.table;
+        let graphData = responseData.graph;
+        let R = responseData.currentR;
+        
 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawArea(R);
+        drawGrid(R);
+        graphData.forEach(function (p) {
+            drawPoint(p);
+        })
 
-    const R = Number(storage.get('lastR')) || 3;
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = '';
 
-    drawScene(R);
+        tableData.forEach(function (r) {
+            addRowToTable(r);
+        })
+    } catch (e) {
+        console.error("Error", e);
+    }
 });
 
-tableClearBtn.addEventListener('click', function () {
-    results = [];
-    storage.remove('results');
-    const tbody = document.getElementById('resultsBody');
-    tbody.innerHTML = '';
+tableClearBtn.addEventListener('click', async function () {
+    try {
+        let response = await fetch("api/clearTable", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Ошибка сервера: " + response.status)
+        }
+
+
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = '';
+    } catch (e) {
+        console.error("Error", e);
+    }
 });
 
-graphClearBtn.addEventListener('click', function () {
-    points = [];
-    storage.remove('points');
-    const R = Number(storage.get('lastR')) || 3;
-    drawScene(R);
+graphClearBtn.addEventListener('click', async function () {
+    try {
+        let response = await fetch("api/clearGraph", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            throw new Error("Ошибка сервера: " + response.status)
+        }
+
+        let R = await response.json();
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawArea(R);
+        drawGrid(R);
+
+    } catch (e) {
+        console.error("Error", e);
+    }
 });
 
 function showToast(message, type = 'error') {
@@ -445,7 +505,6 @@ canvas.addEventListener('click', async function (event) {
     const mouseY = event.clientY - rect.top;
     const X = Math.round(toMathX(mouseX) * 10) / 10;
     const Y = Math.round(toMathY(mouseY) * 10) / 10;
-    const R = Number(storage.get('lastR')) || 3;
 
     let isValid = false;
     if (X < -4 || X > 4) { showToast('X должен быть числом от -4 до 4'); isValid = true; }
@@ -455,34 +514,36 @@ canvas.addEventListener('click', async function (event) {
     const point = {
         x: X,
         y: Y,
-        r: R,
-        hit: isHit(X, Y, R),
-        timestamp: Date.now()
     };
 
-    const isDuplicate = points.some(p => 
-        p.x === X && p.y === Y
-    );
-    if (!(isDuplicate)) {
-        let requestData = point;
-        try {
-        let response = await fetch("URL", {
+
+    let requestData = point;
+    try {
+        let response = await fetch("api/add", {
             method: "POST",
             headers: {
-                "Content-type": "application/json"
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(requestData)
         });
 
         if (!response.ok) {
+            if (response.status === 400) {
+                throw new Error("Duplicate");
+            }
             throw new Error("Ошибка сервера: " + response.status);
         }
 
         let responseData = await response.json();
+        
+
         drawPoint(responseData);
     } catch (e) {
-        console.error("Error", e);
-    }
+        if (e.message === "Duplicate") {
+            showToast("Точка уже есть на графике");
+        } else {
+            console.error("Error", e);
+        }
     }
 })
 
